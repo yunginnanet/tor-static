@@ -215,14 +215,14 @@ func build(folder string) error {
 			"--enable-static-openssl", "--with-openssl-dir=" + pwd + "/../_openssl/dist",
 			"--enable-static-zlib", "--with-zlib-dir=" + pwd + "/../zlib/dist",
 			"--disable-systemd", "--disable-lzma", "--disable-seccomp",
-			"--disable-html-manual", "--disable-manpage"}
+			"--disable-html-manual", "--disable-manpage", "--disable-zstd"}
 
 		if host != "" {
 			torConf = append(torConf, "--host="+host)
 		}
 
 		if runtime.GOOS == "darwin" {
-			torConf = append(torConf, []string{"--disable-zstd", "--disable-libscrypt"}...)
+			torConf = append(torConf, []string{"--disable-libscrypt"}...)
 			if host != "" {
 				torConf = append(torConf, "--disable-tool-name-check")
 			}
@@ -232,9 +232,6 @@ func build(folder string) error {
 			torConf = append(torConf, "--enable-static-tor")
 		}
 
-		if runtime.GOOS == "windows" {
-			torConf = append(torConf, "--disable-zstd")
-		}
 		return runCmds(folder, env, [][]string{
 			{"sh", "-l", "./autogen.sh"},
 			torConf,
@@ -329,7 +326,7 @@ func getLibSets() ([]*libSet, error) {
 	}
 	out = []byte(newOutput.String())
 	if err != nil {
-		return nil, fmt.Errorf("Failed 'make show-libs' in tor: %v", err)
+		return nil, fmt.Errorf("failed 'make show-libs' in tor: %w", err)
 	}
 	// Load them all
 	libSets := []*libSet{}
