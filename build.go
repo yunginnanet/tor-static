@@ -3,6 +3,7 @@ package main
 import (
 	"archive/tar"
 	"archive/zip"
+	"bufio"
 	"bytes"
 	"compress/gzip"
 	"errors"
@@ -318,6 +319,15 @@ func getLibSets() ([]*libSet, error) {
 	cmd := exec.Command("make", "show-libs")
 	cmd.Dir = "tor"
 	out, err := cmd.Output()
+	newOutput := &strings.Builder{}
+	xerox := bufio.NewScanner(bytes.NewReader(out))
+	for xerox.Scan() {
+		if strings.Contains(xerox.Text(), "[") {
+			continue
+		}
+		newOutput.WriteString(xerox.Text() + "\n")
+	}
+	out = []byte(newOutput.String())
 	if err != nil {
 		return nil, fmt.Errorf("Failed 'make show-libs' in tor: %v", err)
 	}
